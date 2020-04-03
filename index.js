@@ -1,7 +1,12 @@
+require('dotenv').config()
+
+const fs = require('fs')
 const ora = require('ora')
 const juice = require('juice')
 const Handlebars = require('handlebars')
 const sendGmail = require('gmail-send')
+const batchPromises = require('batch-promises')
+const argv = require('yargs').argv
 
 const campaigns = require('./emails')
 
@@ -16,14 +21,13 @@ function createSpinner() {
     return spinner
 }
 
-function spinnerProgress(spinner, current, total, description) {
-    spinner.text = `[${current}/${total}] ${description}`
+function spinnerProgress(current, total, description) {
+    return `[${current}/${total}] ${description}`
 }
 
 function sendEmailsByCampaign(campaign, emails) {
-    const emailCount = emails.length
     const campaignEmails = campaigns[campaign]
-    if ([campaign,emails].includes(undefined)) {
+    if ([campaign, emails].includes(undefined)) {
         exitWithError("One of the parameters passed was invalid")
     }
 
@@ -33,16 +37,22 @@ function sendEmailsByCampaign(campaign, emails) {
         exitWithError("Campaign not found")
     }
 
-    let emailsByCampaign = campaignEmails.map((campaign, campaignIndex) => transformCampaign(emails, campaign, campaignIndex))
+    const gmailSender = loginToGmail()
+    const emailsToSendOut = campaignEmails.flatMap((campaign, campaignIndex) => transformCampaign(emails, campaign, campaignIndex))
+    const emailCount = emailsToSendOut.length
 
-    emailsByCampaign.forEach(campaignEmails => {
-        campaignEmails.forEach(emailDetails => {
-            processEmail(emailDetails)
-        })
+    batchPromises(2, emailsToSendOut, async email => {
+        let index = emailsToSendOut.findIndex(item => item == email)
+        spinner.text = spinnerProgress(index + 1, emailCount, `Email with subject ${email.subject}`)
+        return processEmail(gmailSender, email)
+    }).then(function () {
+        spinner.color = 'green'
+        spinner.text = "Finished processing emails. Wrapping things up.."
 
+        setTimeout(() => {
+            process.exit()
+        }, 1000);
     })
-
-    spinner.text = ``
 }
 
 function transformCampaign(emails, campaign, campaignIndex) {
@@ -68,17 +78,37 @@ function transformCampainEmail(template, campaign, email, emailIndex) {
     }
 }
 
-function processEmail(emailDetails) {
-    const send = sendGmail({
+function loginToGmail() {
+    return sendGmail({
         user: process.env.EMAILER_EMAIL,
         pass: process.env.EMAILER_PASSWORD,
     })
-
-    send({
-        to: emailDetails.email,
-        subject: emailDetails.subject,
-        html: emailDetails.body
-    })
 }
 
-// sendEmailsByCampaign("hackthecrisis", [])
+async function processEmail(send, emailDetails) {
+    try {
+        await send({
+            to: emailDetails.email,
+            subject: emailDetails.subject,
+            html: emailDetails.body
+        })
+    } catch (error) {
+        print(`Failed sending email to: ${emailDetails.email} - ${emailDetails.body}`)
+    }
+}
+
+var errored = false
+
+if (!argv.campaign) {
+    console.error(`"--campaign" property missing`)
+    errored = true
+}
+if (!argv.emails) {
+    console.error(`"--emails" property missing`)
+    errored = true
+}
+
+if (!errored) {
+    let emails = require(`./recipients/${argv.emails}.json`)
+    sendEmailsByCampaign(argv.campaign, emails)
+}
