@@ -17,8 +17,8 @@ function transformer(index, email) {
 }
 
 function info() {
-    const template = wolfAsset("/template.hbs")
-    const stylesheet = wolfAsset("/template.hbs")
+    const template = wolfAsset("template.hbs")
+    const stylesheet = wolfAsset("style.css")
 
     return {
         template,
