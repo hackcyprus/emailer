@@ -9,6 +9,7 @@
   "author": "mschinis",
   "license": "MIT",
   "devDependencies": {
+    "gmail-send": "^1.8.10",
     "handlebars": "^4.7.6",
     "juice": "^6.0.0",
     "ora": "^4.0.3"

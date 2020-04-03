@@ -1,6 +1,7 @@
 const ora = require('ora')
 const juice = require('juice')
 const Handlebars = require('handlebars')
+const sendGmail = require('gmail-send')
 
 const campaigns = require('./emails')
 
@@ -34,6 +35,13 @@ function sendEmailsByCampaign(campaign, emails) {
 
     let emailsByCampaign = campaignEmails.map((campaign, campaignIndex) => transformCampaign(emails, campaign, campaignIndex))
 
+    emailsByCampaign.forEach(campaignEmails => {
+        campaignEmails.forEach(emailDetails => {
+            processEmail(emailDetails)
+        })
+
+    })
+
     spinner.text = ``
 }
 
@@ -60,4 +68,17 @@ function transformCampainEmail(template, campaign, email, emailIndex) {
     }
 }
 
-sendEmailsByCampaign("hackthecrisis", ['mschinis@gmail.com'])
+function processEmail(emailDetails) {
+    const send = sendGmail({
+        user: process.env.EMAILER_EMAIL,
+        pass: process.env.EMAILER_PASSWORD,
+    })
+
+    send({
+        to: emailDetails.email,
+        subject: emailDetails.subject,
+        html: emailDetails.body
+    })
+}
+
+// sendEmailsByCampaign("hackthecrisis", [])

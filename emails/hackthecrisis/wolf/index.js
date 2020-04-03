@@ -11,7 +11,7 @@ function transformer(index, email) {
     return {
         subject: "HackTheCrisis: Your Goody bag from Wolf!",
         data: {
-            coupon
+            coupon_code: coupon
         }
     }
 }
