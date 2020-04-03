@@ -1,5 +1,7 @@
 node_modules/
 data.json
 emails.json
-recipients/*
 .env
+recipients/*
+!recipients/example.json
+!recipients/README.md
