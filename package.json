@@ -10,6 +10,7 @@
   "license": "MIT",
   "devDependencies": {
     "handlebars": "^4.7.6",
-    "juice": "^6.0.0"
+    "juice": "^6.0.0",
+    "ora": "^4.0.3"
   }
 }
