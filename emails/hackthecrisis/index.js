@@ -3,7 +3,7 @@ const smsTo = require('./sms-to')
 
 module.exports = {
     emails: [
-        // wolf,
+        wolf,
         smsTo
     ]
 }
