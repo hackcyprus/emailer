@@ -25,6 +25,29 @@ function spinnerProgress(current, total, description) {
     return `[${current}/${total}] ${description}`
 }
 
+function sendEmailsByEmailName(name, emails) {
+    const emailModule = require(`./emails/${name}`)
+
+    const spinner = createSpinner()
+    const gmailSender = loginToGmail()
+    const emailsToSend = transformCampaign(emails, emailModule)
+    const emailCount = emailsToSend.length
+
+    batchPromises(2, emailsToSend, async email => {
+        let index = emailsToSend.findIndex(item => item == email)
+        spinner.text = spinnerProgress(index + 1, emailCount, `Email with subject ${email.subject}`)
+        return processEmail(gmailSender, email)
+    }).then(function () {
+        spinner.color = 'green'
+        spinner.text = "Finished processing emails. Wrapping things up.."
+
+        setTimeout(() => {
+            process.exit()
+        }, 1000);
+    })
+
+}
+
 function sendEmailsByCampaign(campaign, emails) {
     const campaignEmails = campaigns[campaign]
     if ([campaign, emails].includes(undefined)) {
@@ -55,7 +78,7 @@ function sendEmailsByCampaign(campaign, emails) {
     })
 }
 
-function transformCampaign(emails, campaign, campaignIndex) {
+function transformCampaign(emails, campaign) {
     const template = generateCampaignTemplate(campaign.info())
     return emails.map((email, emailIndex) => {
         return transformCampainEmail(template, campaign, email, emailIndex)
@@ -97,18 +120,56 @@ async function processEmail(send, emailDetails) {
     }
 }
 
-var errored = false
 
-if (!argv.campaign) {
-    console.error(`"--campaign" property missing`)
-    errored = true
-}
-if (!argv.emails) {
-    console.error(`"--emails" property missing`)
-    errored = true
+
+
+function validateArguments() {
+    var errored = false
+
+    switch (argv.method) {
+        case "campaign": {
+            if (!argv.campaign) {
+                console.error(`"--campaign" property missing`)
+                errored = true
+            }
+            if (!argv.emails) {
+                console.error(`"--emails" property missing`)
+                errored = true
+            }
+            break
+        }
+        case "single": {
+            if (!argv.emailName) {
+                console.error(`"--emailName" property missing`)
+                errored = true
+            }
+            if (!argv.emails) {
+                console.error(`"--emails" property missing`)
+                errored = true
+            }
+            break
+        }
+        case undefined:
+            console.error(`"--method" property missing`)
+            errored = true
+            break
+        default: break
+    }
+
+    if (errored) {
+        process.exit()
+    }
 }
 
-if (!errored) {
-    let emails = require(`./recipients/${argv.emails}.json`)
-    sendEmailsByCampaign(argv.campaign, emails)
+validateArguments()
+switch (argv.method) {
+    case "campaign": {
+        const emails = require(`./recipients/${argv.emails}.json`)
+        return sendEmailsByCampaign(argv.campaign, emails)
+    }
+    case "single": {
+        const emails = require(`./recipients/${argv.emails}.json`)
+        return sendEmailsByEmailName(argv.emailName, emails)
+    }
+    default: exitWithError(`Unknown "--method" property provided`)
 }

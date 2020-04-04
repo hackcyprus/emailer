@@ -4,7 +4,8 @@
   "description": "Email attendees with dynamic inputs",
   "main": "index.js",
   "scripts": {
-    "email:campaign": "node --max-old-space-size=8192 index.js",
+    "email:campaign": "node --max-old-space-size=8192 index.js --method=campaign",
+    "email:single": "node --max-old-space-size=8192 index.js --method=single",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "mschinis",
