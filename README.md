@@ -14,4 +14,10 @@ In order to send emails, make will need to:
 
 - Copy `.env.example` to `.env` and add missing values
 - Add the list of emails you would like to contact in `/recipients`. [Check /recipients Readme](/recipients)
-- `npm run email:campaign -- --campaign=nameOfCampaign --emails=nameOfEmailsFile`
+- To send the whole campaign: `npm run email:campaign -- --campaign=nameOfCampaign --emails=nameOfEmailsFile`
+- To send a single email: `npm run email:single -- --emailName=nameOfEmailWithFolderName --emails=nameOfEmailsFile`
+
+**Examples:**
+
+- Single email: `npm run email:single -- --emailName=hackthecrisis/wolf --emails=hackthecrisis-emails`
+- Entire campaign: `npm run email:campaign -- --campaign=hackthecrisis --emails=hackthecrisis-emails`
