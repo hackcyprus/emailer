@@ -116,7 +116,7 @@ async function processEmail(send, emailDetails) {
             html: emailDetails.body
         })
     } catch (error) {
-        print(`Failed sending email to: ${emailDetails.email} - ${emailDetails.body}`)
+        console.log(`Failed sending email to: ${emailDetails.email} - ${emailDetails.subject}`)
     }
 }
 
