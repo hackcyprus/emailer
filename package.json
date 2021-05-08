@@ -14,7 +14,7 @@
     "batch-promises": "0.0.3",
     "dotenv": "^8.2.0",
     "gmail-send": "^1.8.10",
-    "handlebars": "^4.7.6",
+    "handlebars": "^4.7.7",
     "juice": "^6.0.0",
     "ora": "^4.0.3",
     "yargs": "^15.3.1"
